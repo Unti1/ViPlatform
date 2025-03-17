@@ -9,8 +9,7 @@ from alembic import context
 
 
 #Сюда выносим все необходимые значения и ОРМ модели для форматрование базы данных
-from models.profile import Profile
-from models.user import User
+from models import *
 from settings.database import DATABASE_URL, Base
 
 # this is the Alembic Config object, which provides
