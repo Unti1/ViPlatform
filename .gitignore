@@ -1,0 +1,4 @@
+*.lock
+*.toml
+*.env
+__pycache__
