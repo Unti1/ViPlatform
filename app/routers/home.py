@@ -6,3 +6,6 @@ router = APIRouter(
     tags=['Home'],
     )
 
+@router.get('/')
+async def home():
+    return {'message': 'Welcome to the Home Page'}
