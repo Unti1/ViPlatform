@@ -1,7 +1,8 @@
-from profile import Profile
 import bcrypt
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from settings.config import Settings
+from models.profile import Profile
+from settings.config import settings
 from settings.database import Base, connection, unique_str_an
 from sqlalchemy.orm import Mapped, relationship
 from sql_enums.base import GenderEnum, StatusEnum
@@ -19,6 +20,28 @@ class User(Base):
         lazy='joined',
         cascade='all, delete-orphan'
     )
+    
+    dashboards: Mapped['Dashboard'] = relationship(
+        'Dashboard',
+        back_populates='user',
+        lazy='joined',
+        cascade='all, delete-orphan'
+    )
+    
+    groupitem: Mapped['GroupItem'] = relationship(
+        'GroupItem',
+        back_populates='user',
+        lazy='joined',
+        cascade='all, delete-orphan'
+    )
+    
+    quizzes: Mapped['Quiz'] = relationship(
+        'Quiz',
+        back_populates='user',
+        cascade='all, delete-orphan'
+    ) 
+    
+
     
     @classmethod
     @connection
@@ -51,7 +74,7 @@ class User(Base):
  
         """
         
-        hash_pass = str(bcrypt.hashpw(password.encode('UTF-8'), Settings.SECRET_KEY.encode('UTF-8')))
+        hash_pass = str(bcrypt.hashpw(password.encode('UTF-8'), bcrypt.gensalt()))
         
         new_user: User = User(
             username=username, 
@@ -60,18 +83,42 @@ class User(Base):
             )
         
         session.add(new_user)
+        await session.commit()
         
         new_profile = Profile(
-            name=name, 
+            user_id=new_user.id,
+            name=name,
             surname=surname, 
             status=status, 
             gender=gender, 
-            about=about, 
-            user_id=new_user.id
+            about=about
             )
 
         session.add(new_profile)
         await session.commit()
         
-        return new_user.id
+        return new_user
 
+    @classmethod
+    @connection
+    async def get_by_username(cls, username: str, session: AsyncSession = None):
+        session.execute(select(cls).where(cls.username == username))
+        user = await session.scalars().first()
+        return user
+
+
+
+    @classmethod
+    @connection
+    async def check(cls, username: str, password: str, session: AsyncSession = None):
+        user: User = cls.get_by_username(username)
+        if not user:
+            return False, "Неверное имя пользователя или пароль"
+        
+        elif not bcrypt.checkpw(password.encode(), user.password):
+            return False, "Неверное имя пользователя или пароль"
+
+        return True, "Пользователь успешно вошел"
+        
+
+        

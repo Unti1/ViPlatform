@@ -1,12 +1,11 @@
 from datetime import datetime
 from typing import Annotated
-from sqlalchemy import Integer, func, select
+from sqlalchemy import ARRAY, Integer, func, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, declared_attr
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, AsyncAttrs, async_sessionmaker
 from settings.config import settings
 
 DATABASE_URL = settings.get_db_url()
-
 engine = create_async_engine(url=DATABASE_URL)
 
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
@@ -69,6 +68,14 @@ class Base(AsyncAttrs, DeclarativeBase):
     
     @classmethod
     @connection
+    async def get(cls, session: AsyncSession, **kwagrs) -> 'Base':
+        query = select(cls).where(**kwagrs)
+        rows = await session.execute(query)
+        return rows.scalar_one_or_none()
+    
+    
+    @classmethod
+    @connection
     async def update(
         cls,
         id: int,
@@ -104,3 +111,4 @@ class Base(AsyncAttrs, DeclarativeBase):
     
 # Тут блок для повторяющихся аннотаций
 unique_str_an = Annotated[str, mapped_column(unique=True)]
+array_or_none_an = Annotated[list[int], mapped_column(ARRAY(Integer), default = [])]

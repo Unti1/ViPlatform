@@ -5,6 +5,13 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
+
+class UserSignIn(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    password: str = Field(..., min_length=6)
+    
+    model_config = ConfigDict(from_attributes=True)
+    
 class UserRegistration(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
@@ -14,7 +21,11 @@ class UserRegistration(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
     @field_validator('confirm_password')
-    def passwords_match(cls, v, values, **kwargs):
-        if 'password' in values and v != values['password']:
-            raise ValueError('Passwords do not match')
-        return v
+    async def passwords_match(cls, value, values, **kwargs):
+        print(value, values)
+        return value
+    
+class UserSchema(BaseModel):
+    username: str
+    email: EmailStr
+    password: str

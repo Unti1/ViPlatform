@@ -1,9 +1,10 @@
+from typing import Annotated
 from urllib import request
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from app.schemas.user import UserRegistration
+from schemas.user import UserRegistration
 from models.user import User
 
 
@@ -15,29 +16,19 @@ router = APIRouter(
 template = Jinja2Templates(directory= "site_data/templates")
 
 @router.get('/')
-async def get_sign_in_form(request: Request):
+async def get_sign_up_form(request: Request):
     return template.TemplateResponse('signup.html', {'request': request})
     
 @router.post('/register')
 async def register_user(
     request: Request,
-    username: str = Form(...),
-    email: str = Form(...),
-    password: str = Form(...),
-    confirm_password: str = Form(...)
+    user_data: Annotated[UserRegistration, Depends()]
     ):
 
-    user_data = {
-        'username': username,
-        'email': email,
-        'password': password,
-        'confirm_password': confirm_password
-    }
-
-
     try:
-        user_registration = UserRegistration(**user_data)
-        await User.create(**user_data)
-        return {'message': "Пользователь успешно зарегистрирован", "data": user_registration}
+        user_data: dict = dict(user_data)
+        user_data.pop("confirm_password")
+        user = await User.create(**user_data)
+        return {'message': "Пользователь успешно зарегистрирован", "user_id": user.id}
     except ValueError as e:
         return {"message": str(e)}

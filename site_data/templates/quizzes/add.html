@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Создать тест</title>
+    <script>
+        
+    </script>
+</head>
+<body>
+    <h1>Создать тест</h1>
+    <form action="/quizzes/add" method="post">
+        <label>Название теста:</label>
+        <input type="text" name="title" required>
+
+        <label>Описание теста:</label>
+        <textarea name="description" required></textarea>
+
+        <h3>Вопросы</h3>
+        <div id="questions">
+            <!-- Первый вопрос -->
+            <div id="question-1">
+                <h4>Вопрос 1</h4>
+                <textarea name="quiz_description[]" placeholder="Введите описание вопроса (можно использовать HTML для изображений)"></textarea>
+                <textarea name="quiz_answers[]" placeholder="Введите ответ"></textarea>
+            </div>
+        </div>
+
+        <button type="button" onclick="addQuestion()">Добавить вопрос (+)</button>
+        <button type="submit">Сохранить тест</button>
+    </form>
+</body>
+</html>

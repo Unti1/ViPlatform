@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Доступные тесты</h1>
+<a href="/quizzes/add">Создать новый тест</a>
+<ul>
+{% for quiz in quizzes %}
+        <li>
+            <h3>{{ quiz.title }}</h3>
+            <p>{{ quiz.description }}</p>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock content %}
