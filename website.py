@@ -9,6 +9,7 @@ from app.routers.quizzes import router as quize_router
 from app.routers.log_in import router as sign_in_router
 from app.routers.sign_up import router as sign_up_router
 from app.routers.dashboard import router as dashboard_router
+from app.routers.group import router as group_router
 
 
 @asynccontextmanager
@@ -24,6 +25,7 @@ app.include_router(sign_in_router)
 app.include_router(quize_router)
 app.include_router(home_router)
 app.include_router(dashboard_router)
+app.include_router(group_router)
 
 if __name__ == '__main__':
     uvicorn.run("website:app", reload=True)

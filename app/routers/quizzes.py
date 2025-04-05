@@ -12,8 +12,8 @@ router = APIRouter(
 template = Jinja2Templates(directory= "site_data/templates")
 
 @router.get('/')
-def quizzes(request: Request, user_id:int):
-    quizzes = Quiz.get_per_user_id(user_id)
-    return template.TemplateResponse('quizzes.html', {'request': request, 'quizzes': quizzes})
+async def quizzes(request: Request, user_id:int):
+    quizzes: list[Quiz] = await Quiz.get_per_user_id(user_id)
+    return template.TemplateResponse('quizzes/home.html', {'request': request, 'quizzes': quizzes})
 
 

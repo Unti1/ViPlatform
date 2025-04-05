@@ -6,7 +6,7 @@
 <ul>
 {% for quiz in quizzes %}
         <li>
-            <h3>{{ quiz.title }}</h3>
+            <h3><a href="/quizzes/{{quiz.id}}">{{ quiz.title }}</a></h3>
             <p>{{ quiz.description }}</p>
         </li>
     {% endfor %}

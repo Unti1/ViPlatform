@@ -2,7 +2,7 @@
 
 <meta charset="UTF-8">
 {% block head %}
-    <title>Доска {{title}}</title>
+    <title>Доска: {{title}}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .draggable { cursor: move; }
@@ -75,5 +75,6 @@
             </button>
         </div>
     </div>
+<script src="/static/websocket.js"></script>
 <script src="/static/dashboard.js"></script>
 {% endblock content %}

@@ -1,13 +1,22 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<form action="/login" method="post">
-    <label for="username">Имя пользователя:</label><br>
-    <input type="text" id="username" name="username" required><br><br>
-    
-    <label for="password">Пароль:</label><br>
-    <input type="password" id="password" name="password" required><br><br>
+{% block head %}
+    <title>Вход</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+{% endblock head %}
 
-    <input type="submit" value="Register">
-</form>
+{% block content %}
+<div style="display: flex;flex-direction: column; height: 90vh;" class="justify-center">    
+    <form action="./login" method="post" class="grid items-center justify-center rounded-lg">
+        <div class="bg-yellow-50 p-5 rounded-lg">
+            <label for="username">Имя пользователя:</label><br>
+            <input type="text" id="username" name="username" required><br><br>
+        
+            <label for="password">Пароль:</label><br>
+            <input type="password" id="password" name="password" required><br><br>
+            
+        </div>
+        <input type="submit" value="Вход" class="rounded-lg bg-blue-500 hover:bg-blue-600 text-white p-3">
+    </form>
+</div>
 {% endblock %}

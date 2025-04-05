@@ -102,9 +102,8 @@ class User(Base):
     @classmethod
     @connection
     async def get_by_username(cls, username: str, session: AsyncSession = None):
-        session.execute(select(cls).where(cls.username == username))
-        user = await session.scalars().first()
-        return user
+        rows = await session.execute(select(cls).where(cls.username == username))
+        return rows.scalar_one_or_none()
 
 
 

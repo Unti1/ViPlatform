@@ -1,7 +1,7 @@
 
 
 from uuid import uuid4
-from sqlalchemy import ForeignKey, Integer, select
+from sqlalchemy import ForeignKey, Integer, select, text
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, query, relationship
@@ -14,7 +14,7 @@ class Dashboard(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     group_id: Mapped[int] = mapped_column(ForeignKey('groups.id'))
     # connected_ids: Mapped[list[int]] = mapped_column(ARRAY(Integer), default=[])
-    data: Mapped[dict] = mapped_column(JSON)
+    data: Mapped[dict] = mapped_column(JSON, default={})
     
     group: Mapped['Group'] = relationship(
         'Group',
@@ -29,8 +29,7 @@ class Dashboard(Base):
     
     @classmethod
     @connection
-    async def add(cls, session: AsyncSession = None, **kwargs):
-        dashboard = Dashboard(title="New Dashboard")
-        session.add(dashboard)
-        await session.commit()
-        return dashboard
+    async def get(cls,dashboard_id: str, session: AsyncSession):
+        query = select(cls).where(cls.dashboard_id == dashboard_id)
+        rows = await session.execute(query)
+        return rows.scalar_one_or_none()

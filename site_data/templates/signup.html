@@ -1,19 +1,27 @@
 {% extends 'base.html' %}
 
+{% block head %}
+    <title>Регистрация</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+{% endblock head %}
+
 {% block content %}
-<form action="/register" method="post">
-    <label for="username">Имя пользователя:</label><br>
-    <input type="text" id="username" name="username" required><br><br>
-    
-    <label for="email">Email:</label><br>
-    <input type="email" id="email" name="email" required><br><br>
-    
-    <label for="password">Пароль:</label><br>
-    <input type="password" id="password" name="password" required><br><br>
-    
-    <label for="confirm_password">Подтвердите пароль:</label><br>
-    <input type="password" id="confirm_password" name="confirm_password" required><br><br>
-    
-    <input type="submit" value="Register">
-</form>
+<div style="display: flex;flex-direction: column; height: 90vh;" class="justify-center">  
+    <form action="/signup/register" method="post" class="grid items-center justify-center rounded-lg">
+        <div class="bg-yellow-50 p-5 rounded-lg border">
+            <label for="username">Имя пользователя:</label><br>
+            <input type="text" id="username" name="username" class="border rounded-lg" required><br><br>
+            
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" class="border rounded-lg" required><br><br>
+            
+            <label for="password">Пароль:</label><br>
+            <input type="password" id="password" name="password" class="border rounded-lg" required><br><br>
+            
+            <label for="confirm_password">Подтвердите пароль:</label><br>
+            <input type="password" id="confirm_password" name="confirm_password" class="border rounded-lg" required><br><br>
+        </div>
+        <input type="submit" value="Регистрация" class="rounded-lg bg-blue-500 hover:bg-blue-600 text-white p-3">
+    </form>
+</div>
 {% endblock %}

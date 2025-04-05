@@ -1,4 +1,5 @@
 import os
+import pathlib
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,13 +9,15 @@ class Settings(BaseSettings):
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
+    ROOT_PATH: pathlib.Path = pathlib.Path(__file__).parent.parent 
 
     DATABASE_SQLITE: str = 'sqlite+aiosqlite:///data/main.db'
     
     SECRET_KEY: str
 
     model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.split(os.path.dirname(os.path.abspath(__file__)))[0], '.env')
+        env_file=ROOT_PATH / '.env',
+        env_file_encoding='utf-8'
     )
 
     def get_db_url(self):
