@@ -13,8 +13,9 @@ class Quiz(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     title: Mapped[str]
     description: Mapped[str]
-    quiz_description: Mapped[list[str]] = mapped_column(JSON)
-    quiz_answers: Mapped[list[str]] = mapped_column(JSON)
+    timer: Mapped[int] # seconds
+    quiz_description: Mapped[dict] = mapped_column(JSON)
+    quiz_answers: Mapped[dict] = mapped_column(JSON)
 
     user: Mapped["User"] = relationship("User", back_populates="quizzes")
 

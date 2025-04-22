@@ -1,0 +1,24 @@
+
+{% block chat %}
+
+<div class="chat-container absolute top-20 right-2">
+    <!-- Область сообщений -->
+    <div class="messages" id="messages">
+        <!-- Пример входящего сообщения
+        <div class="message incoming">Привет! Как дела?</div>
+        Пример исходящего сообщения
+        <div class="message outgoing">Привет! Все отлично, спасибо!</div> -->
+    </div>
+    
+    <!-- Форма ввода -->
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Введите сообщение..." />
+        <button id="sendButton">Отправить</button>
+    </div>
+</div>
+
+{% endblock chat %}
+
+{% block scripts %}
+<script src="/static/chat.js"></script>
+{% endblock scripts %}

@@ -1,32 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
+{% extends "base.html" %}
+
+{% block head %}
     <title>Создать тест</title>
-    <script>
-        
-    </script>
-</head>
-<body>
-    <h1>Создать тест</h1>
-    <form action="/quizzes/add" method="post">
-        <label>Название теста:</label>
-        <input type="text" name="title" required>
+{% endblock head %}
 
-        <label>Описание теста:</label>
-        <textarea name="description" required></textarea>
-
-        <h3>Вопросы</h3>
-        <div id="questions">
-            <!-- Первый вопрос -->
-            <div id="question-1">
-                <h4>Вопрос 1</h4>
-                <textarea name="quiz_description[]" placeholder="Введите описание вопроса (можно использовать HTML для изображений)"></textarea>
-                <textarea name="quiz_answers[]" placeholder="Введите ответ"></textarea>
-            </div>
+{% block content %}
+<div class="bg-yellow-50 shadow-lg rounded-lg max-w-full relative">
+    <button id="save-btn" class="absolute top-0 right-0 bg-blue-400 shadow-lg rounded-lg m-3 p-2">Сохранить</button>
+    
+    <div class="quiz-form justify-center items-center">
+        <div class="quiz-header p-10">
+            <label>Название теста:</label>
+            <input type="text" id="quiz-title" style="width: 100%; padding: 5px; margin-bottom: 10px;">
+            <label>Описание теста:</label>
+            <textarea id="quiz-description" class="tinymce" style="width: 100%; height: 100px;"></textarea>
         </div>
 
-        <button type="button" onclick="addQuestion()">Добавить вопрос (+)</button>
-        <button type="submit">Сохранить тест</button>
-    </form>
-</body>
-</html>
+        <div id="questions-container" class = 'p-10'>
+            <!-- Начальный блок вопрос-ответ -->
+            <div class="question-block grid" data-id="0">
+                <label>Вопрос:</label>
+                <textarea id="question-editor-0"></textarea>
+                <div class="answer-type">
+                    <label>Тип ответа:</label>
+                    <select id="answer-type-0" onchange="updateAnswerType(0)">
+                        <option value="text">Текст</option>
+                        <option value="choices">Варианты выбора</option>
+                    </select>
+                </div>
+
+                <div id="answer-content-0">
+                    <textarea id="answer-text-0" class="tinymce"></textarea>
+                </div>
+            </div>
+        </div>
+        <button id="add-question-btn" class="down-0 right-0 bg-blue-400 shadow-lg rounded-lg m-3 p-2">Добавить вопрос</button>
+    </div>
+</div>
+
+<script src="/static/quizes.js"></script>
+{% endblock content %}

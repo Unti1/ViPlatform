@@ -1,8 +1,8 @@
-"""Init database
+"""Create database
 
-Revision ID: 09c4b7c991f0
+Revision ID: 039321bcc1b4
 Revises: 
-Create Date: 2025-03-29 16:15:28.956538
+Create Date: 2025-04-13 20:45:07.282442
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '09c4b7c991f0'
+revision: str = '039321bcc1b4'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,12 +25,14 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
     op.create_table('users',
     sa.Column('username', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
     sa.Column('password', sa.String(), nullable=False),
+    sa.Column('role', sa.Enum('TEACHER', 'STUDENT', name='roleenum'), server_default=sa.text("'STUDENT'"), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -62,14 +64,14 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('profiles',
+    sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=True),
     sa.Column('surname', sa.String(), nullable=True),
     sa.Column('about', sa.String(), nullable=True),
     sa.Column('age', sa.String(), nullable=True),
     sa.Column('group', sa.String(), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('DEMO', 'BASE', 'PRO', 'ADMIN', 'CREATOR', name='statusenum', create_enum=False), server_default='DEMO', nullable=False),
-    sa.Column('gender', sa.Enum('MALE', 'FEMALE', 'UNDEFINE', name='genderenum', create_enum=False), server_default='UNDEFINE', nullable=False),
+    sa.Column('status', sa.Enum('DEMO', 'BASE', 'PRO', 'ADMIN', 'CREATOR', name='statusenum'), server_default='DEMO', nullable=False),
+    sa.Column('gender', sa.Enum('MALE', 'FEMALE', 'UNDEFINE', name='genderenum'), server_default='UNDEFINE', nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -80,8 +82,8 @@ def upgrade() -> None:
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('description', sa.String(), nullable=False),
-    sa.Column('quiz_description', sa.ARRAY(sa.String()), nullable=False),
-    sa.Column('quiz_answers', sa.ARRAY(sa.String()), nullable=False),
+    sa.Column('quiz_description', postgresql.JSON(astext_type=sa.Text()), nullable=False),
+    sa.Column('quiz_answers', postgresql.JSON(astext_type=sa.Text()), nullable=False),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
@@ -112,5 +114,3 @@ def downgrade() -> None:
     op.drop_table('users')
     op.drop_table('groups')
     # ### end Alembic commands ###
-    op.execute('DROP TYPE IF EXISTS statusenum;')
-    op.execute('DROP TYPE IF EXISTS genderenum;')

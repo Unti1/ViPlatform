@@ -10,6 +10,7 @@ class Profile(Base):
     about: Mapped[str|None]
     age: Mapped[str|None]
     group: Mapped[str|None]
+    # group_id: Mapped[int|None] = mapped_column(ForeignKey('gropitems.id')) 
     status: Mapped[StatusEnum] = mapped_column(default=StatusEnum.DEMO, server_default="'DEMO'")
     gender: Mapped[GenderEnum] = mapped_column(default=GenderEnum.UNDEFINE, server_default="'UNDEFINE'")
     

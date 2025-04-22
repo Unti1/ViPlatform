@@ -15,3 +15,8 @@ class Group(Base):
         back_populates="group",
         cascade="all, delete-orphan",
     )
+    
+    manuals: Mapped["Manual"]  = relationship(
+        'Manual',
+        back_populates='group',
+    )

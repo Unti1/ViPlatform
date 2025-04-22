@@ -1,9 +1,9 @@
 import enum
 
 class GenderEnum(str, enum.Enum):
+    UNDEFINE = 'Не определено'
     MALE = 'Мужчина'
     FEMALE = 'Женщина'
-    UNDEFINE = 'Не определено'
     
 class StatusEnum(str, enum.Enum):
     DEMO = 'Демонстрационный'

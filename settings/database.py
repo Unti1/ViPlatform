@@ -78,13 +78,27 @@ class Base(AsyncAttrs, DeclarativeBase):
 
         rows = await session.execute(select(cls).where(cls.id == id))
         return rows.scalars().first()
-
+    
     @classmethod
     @connection
-    async def get(cls, session: AsyncSession, **kwagrs) -> "Base":
-        query = select(cls).where(**kwagrs)
+    async def get(cls, session: AsyncSession, **creterias):
+        query = select(cls).filter_by(**creterias)
         rows = await session.execute(query)
-        return rows.scalar_one_or_none()
+        return rows.scalars().all()
+    
+    @classmethod
+    @connection
+    async def get_all_per_id(cls, id, session: AsyncSession, **kwagrs):
+        query = select(cls).where(cls.user_id == id)
+        rows = await session.execute(query)
+        return rows.scalars().all()
+    
+    @classmethod
+    @connection
+    async def get_all(cls, session: AsyncSession):
+        query = select(cls)
+        rows = await session.execute(query)
+        return rows.scalars().all()
 
     @classmethod
     @connection

@@ -1,17 +1,24 @@
 import bcrypt
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from models.profile import Profile
-from settings.config import settings
 from settings.database import Base, connection, unique_str_an
-from sqlalchemy.orm import Mapped, relationship
-from sql_enums.base import GenderEnum, StatusEnum
+from sql_enums.base import RoleEnum
+
 
 class User(Base):
     username: Mapped[unique_str_an]
     email: Mapped[unique_str_an]
     password: Mapped[str]
+    role: Mapped[RoleEnum] = mapped_column(default=RoleEnum.STUDENT, server_default=text("'STUDENT'"))
 
+    # tokens: Mapped['UserToken'] = relationship(
+    #     'UserToken',
+    #     back_populates='user'
+    # )
+    
     # Связь one-to-one с profile
     profile: Mapped['Profile'] = relationship(
         'Profile',
@@ -50,12 +57,8 @@ class User(Base):
         username: str,
         email: str,
         password: str,
-        name: str | None = '',
-        surname: str | None = '',
-        status: StatusEnum = StatusEnum.DEMO,
-        gender: GenderEnum = GenderEnum.UNDEFINE,
-        about: str | None = '',
         session: AsyncSession = None,
+        **profile_data
     ) -> 'User':
         """Модель для создания пользователя.
 
@@ -63,12 +66,7 @@ class User(Base):
             username (str): Имя пользователя(уникальное)
             email (str): Email пользователя(уникальное)
             password (str): Пароль позователя
-            name (str | None, optional):  Имя пользователя на сайте. Опционально.
-            surname (str | None, optional): Фамилия пользователя на сайте. Опциально.
-            status (StatusEnum, optional): статус пользователя. В дальнейшем можно для подписки реализовать. Опционально.
-            gender (GenderEnum, optional): Пол. По умочанию - UNDEFINE. Опционально.
-            about (str | None, optional): Описание пользователя. Типо графы "о себе. Опционально
-            session (AsyncSession, optional): аргумент под объект рабочей сессии.
+            **profile_data: Прочие данные профиля
         Returns:
             user.id: ID нового пользователя.
  
@@ -87,11 +85,7 @@ class User(Base):
         
         new_profile = Profile(
             user_id=new_user.id,
-            name=name,
-            surname=surname, 
-            status=status, 
-            gender=gender, 
-            about=about
+            **profile_data
             )
 
         session.add(new_profile)
@@ -103,21 +97,21 @@ class User(Base):
     @connection
     async def get_by_username(cls, username: str, session: AsyncSession = None):
         rows = await session.execute(select(cls).where(cls.username == username))
-        return rows.scalar_one_or_none()
+        return rows.scalars().first()
 
 
 
     @classmethod
     @connection
     async def check(cls, username: str, password: str, session: AsyncSession = None):
-        user: User = cls.get_by_username(username)
+        user: User = await cls.get_by_username(username)
+
         if not user:
             return False, "Неверное имя пользователя или пароль"
-        
-        elif not bcrypt.checkpw(password.encode(), user.password):
+        elif not bcrypt.checkpw(password.encode(), user.password[2:-1].encode()):
             return False, "Неверное имя пользователя или пароль"
 
-        return True, "Пользователь успешно вошел"
+        return user, "Успех"
         
 
         

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Личный кабинет</title>
+{% endblock head %}
+
+{% block content %}
+<div style="display: grid; flex-direction: column; height: 90vh;" class="justify-center">
+
+  <div class="bg-yellow-50 p-5 rounded-lg">
+    <label>Инициалы: </label><input type="text" value="{{user.profile.name}} {{user.profile.surname}}" disabled><br><br>
+    <label>О себе: </label><textarea type="text" cols="50"
+      disabled>{{user.profile.about if user.profile.about else "Информация отсутствует" }}</textarea><br><br>
+    <label>Группа: </label><input type="text" value="{{user.profile.group if user.profile.group else 'Не определена'}}"
+      disabled><br><br>
+    <label>Возраст: </label><input type="text" value="{{user.profile.age if user.profile.age else 'Не указан'}}"
+      disabled><br><br>
+    <label>Пол: </label><select type="text" disabled>
+      <option>{{user.profile.gender.value}}</option>
+    </select><br><br>
+    <p align="center">Общий прогресс</p>
+    <table class="grid m-5">
+      <tr>
+        <td class="p-2">Предмет</td>
+        <td class="p-2">Выполнено тестов</td>
+        <td class="p-2">Средняя оценка</td>
+      </tr>
+      
+      <tr>
+        <td class="p-2">Предмет1</td>
+        <td class="p-2 align-center">8/10</td>
+        <td class="p-2">90</td>
+      </tr>
+    </table>
+  </div>
+</div>
+{% endblock content %}
