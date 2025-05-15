@@ -35,3 +35,15 @@ async def quizzes(request: Request):  # , user_id:int):
             "is_auth": await get_is_authenticated(request),
         },
     )
+
+@router.get("/solve/{id}")
+async def solve_quiz(request: Request, id: int):
+    quiz: list[Quiz] = await Quiz.get(id=5)
+    return template.TemplateResponse(
+        "quizzes/solve.html",
+        {
+            "request": request,
+            "quiz": quiz,
+            "is_auth": await get_is_authenticated(request),
+        },
+    )

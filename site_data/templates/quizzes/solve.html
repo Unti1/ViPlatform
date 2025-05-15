@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>Решение теста - {{ quiz.title }}</title>
+    <!-- Подключение TinyMCE для отображения вопросов -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+            min-height: calc(100vh - 60px);
+            position: relative;
+        }
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .quiz-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .question-block {
+            width: 100%;
+            background-color: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .question-content {
+            margin-bottom: 10px;
+        }
+        .answer-options label {
+            display: block;
+            margin: 5px 0;
+        }
+        #timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        #submit-btn {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #submit-btn:hover {
+            background-color: #218838;
+        }
+        #submit-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+{% endblock head %}
+
+{% block content %}
+    <header>
+        <h1>Решение теста: {{ quiz.title }}</h1>
+    </header>
+    <div class="container">
+        <div id="timer">Осталось: <span id="time-remaining"></span></div>
+        <div class="quiz-form">
+            <div class="quiz-header">
+                <h2>{{ quiz.title }}</h2>
+                <div class="quiz-description">{{ quiz.description | safe }}</div>
+            </div>
+            <div id="questions-container">
+                {% for i in range(quiz.quiz_description|length) %}
+                    <div class="question-block" data-id="{{ i }}">
+                        <div class="question-content">{{ quiz.quiz_description[i] | safe }}</div>
+                        {% if quiz.quiz_answers[i] is string %}
+                            <textarea id="answer-{{ i }}" class="answer-text"></textarea>
+                        {% else %}
+                            <div class="answer-options">
+                                {% for option in quiz.quiz_answers[i] %}
+                                    <label>
+                                        <input type="radio" name="answer-{{ i }}" value="{{ option }}">{{ option }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% if is_auth %}
+                <button id="submit-btn">Отправить</button>
+            {% else %}
+                <p style="color: red;">Войдите, чтобы отправить ответы.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const quiz = {{ quiz | tojson }};
+        const timeLimit = {{ quiz.time_limit }}; // Время в секундах
+        let timeRemaining = timeLimit;
+
+        // Отображение и обновление таймера
+        function updateTimer() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('time-remaining').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            if (timeRemaining <= 0) {
+                submitQuiz(); // Автоматическая отправка при истечении времени
+            } else {
+                timeRemaining--;
+                setTimeout(updateTimer, 1000);
+            }
+        }
+
+        // Сбор и отправка ответов
+        async function submitQuiz() {
+            document.getElementById('submit-btn').disabled = true;
+            const answers = [];
+            quiz.quiz_description.forEach((_, i) => {
+                if (typeof quiz.quiz_answers[i] === 'string') {
+                    answers.push(document.getElementById(`answer-${i}`).value);
+                } else {
+                    const selected = document.querySelector(`input[name="answer-${i}"]:checked`);
+                    answers.push(selected ? selected.value : '');
+                }
+            });
+
+            try {
+                const response = await fetch(`/quizzes/${quiz.id}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: 1, // Замените на реальный user_id из вашей системы
+                        quiz_id: quiz.id,
+                        answers: answers
+                    })
+                });
+                if (response.ok) {
+                    alert('Ответы отправлены!');
+                    window.location.href = '/'; // Перенаправление после отправки
+                } else {
+                    alert('Ошибка при отправке ответов');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при отправке');
+            }
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        // Инициализация TinyMCE для вопросов (только для чтения)
+        tinymce.init({
+            selector: '.question-content',
+            readonly: true,
+            menubar: false,
+            toolbar: false,
+            content_style: 'body { font-family: Arial, sans-serif; }'
+        });
+
+        // Запуск таймера
+        updateTimer();
+
+        // Обработчик отправки
+        document.getElementById('submit-btn').addEventListener('click', submitQuiz);
+    </script>
+{% endblock content %}
