@@ -2,8 +2,6 @@
 
 {% block head %}
     <title>Решение теста - {{ quiz.title }}</title>
-    <!-- Подключение TinyMCE для отображения вопросов -->
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -37,16 +35,48 @@
             width: 100%;
             background-color: white;
             padding: 20px;
-            margin: 10px 0;
-            border-radius: 5px;
+            margin: 20px 0;
+            border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .question-content {
+            margin-bottom: 20px;
+        }
+        .question-content h3 {
+            color: #333;
             margin-bottom: 10px;
         }
-        .answer-options label {
+        .answer-text-block {
+            margin-top: 15px;
+        }
+        .answer-text {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        .answer-options {
+            margin-top: 15px;
+        }
+        .answer-option {
             display: block;
+            padding: 10px;
             margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .answer-option:hover {
+            background-color: #f8f9fa;
+        }
+        .answer-option input[type="radio"] {
+            margin-right: 10px;
+        }
+        .answer-option span {
+            vertical-align: middle;
         }
         #timer {
             position: absolute;
@@ -87,16 +117,22 @@
                 <div class="quiz-description">{{ quiz.description | safe }}</div>
             </div>
             <div id="questions-container">
-                {% for i in range(quiz.quiz_description|length) %}
-                    <div class="question-block" data-id="{{ i }}">
-                        <div class="question-content">{{ quiz.quiz_description[i] | safe }}</div>
-                        {% if quiz.quiz_answers[i] is string %}
-                            <textarea id="answer-{{ i }}" class="answer-text"></textarea>
+                {% for question in quiz.quiz_description.questions %}
+                    <div class="question-block" data-id="{{ loop.index0 }}">
+                        <div class="question-content">
+                            <h3>Вопрос {{ loop.index }}</h3>
+                            <div>{{ question.text | safe }}</div>
+                        </div>
+                        {% if question.type == 'text' %}
+                            <div class="answer-text-block">
+                                <textarea id="answer-{{ loop.index0 }}" class="answer-text" rows="4" placeholder="Введите ваш ответ здесь..."></textarea>
+                            </div>
                         {% else %}
                             <div class="answer-options">
-                                {% for option in quiz.quiz_answers[i] %}
-                                    <label>
-                                        <input type="radio" name="answer-{{ i }}" value="{{ option }}">{{ option }}
+                                {% for option in quiz.quiz_answers.answers[loop.index0] %}
+                                    <label class="answer-option">
+                                        <input type="radio" name="answer-{{ loop.index0 }}" value="{{ option }}">
+                                        <span>{{ option }}</span>
                                     </label>
                                 {% endfor %}
                             </div>
@@ -113,17 +149,20 @@
     </div>
 
     <script>
-        const quiz = {{ quiz | tojson }};
-        const timeLimit = {{ quiz.time_limit }}; // Время в секундах
+        const quiz = {{ quiz | safe }};
+        console.log('Quiz data:', quiz);
+        const timeLimit = parseInt(quiz.timer);
         let timeRemaining = timeLimit;
 
         // Отображение и обновление таймера
         function updateTimer() {
             const minutes = Math.floor(timeRemaining / 60);
             const seconds = timeRemaining % 60;
-            document.getElementById('time-remaining').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            const timeDisplay = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            document.getElementById('time-remaining').textContent = timeDisplay;
+            
             if (timeRemaining <= 0) {
-                submitQuiz(); // Автоматическая отправка при истечении времени
+                submitQuiz();
             } else {
                 timeRemaining--;
                 setTimeout(updateTimer, 1000);
@@ -134,36 +173,59 @@
         async function submitQuiz() {
             document.getElementById('submit-btn').disabled = true;
             const answers = [];
-            quiz.quiz_description.forEach((_, i) => {
-                if (typeof quiz.quiz_answers[i] === 'string') {
-                    answers.push(document.getElementById(`answer-${i}`).value);
+            
+            // Собираем все ответы
+            const questions = quiz.quiz_description.questions;
+            questions.forEach((question, i) => {
+                const questionBlock = document.querySelector(`.question-block[data-id="${i}"]`);
+                if (question.type === 'text') {
+                    // Для текстовых ответов
+                    const textAnswer = questionBlock.querySelector('.answer-text').value;
+                    answers.push({
+                        question_id: i,
+                        answer: textAnswer,
+                        type: 'text'
+                    });
                 } else {
-                    const selected = document.querySelector(`input[name="answer-${i}"]:checked`);
-                    answers.push(selected ? selected.value : '');
+                    // Для вариантов ответов
+                    const selectedOption = questionBlock.querySelector('input[type="radio"]:checked');
+                    answers.push({
+                        question_id: i,
+                        answer: selectedOption ? selectedOption.value : '',
+                        type: 'choice'
+                    });
                 }
             });
+
+            console.log('Sending answers:', answers);
 
             try {
                 const response = await fetch(`/quizzes/${quiz.id}/submit`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrf_access_token='))?.split('=')[1]
+                    },
+                    credentials: 'include',
                     body: JSON.stringify({
-                        user_id: 1, // Замените на реальный user_id из вашей системы
-                        quiz_id: quiz.id,
                         answers: answers
                     })
                 });
+
                 if (response.ok) {
-                    alert('Ответы отправлены!');
-                    window.location.href = '/'; // Перенаправление после отправки
+                    const result = await response.json();
+                    alert('Ответы успешно сохранены!');
+                    window.location.href = '/quizzes';
                 } else {
-                    alert('Ошибка при отправке ответов');
+                    const error = await response.json();
+                    alert(`Ошибка при сохранении: ${error.detail || 'Неизвестная ошибка'}`);
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
-                alert('Произошла ошибка при отправке');
+                console.error('Ошибка при отправке:', error);
+                alert('Произошла ошибка при сохранении ответов');
+            } finally {
+                document.getElementById('submit-btn').disabled = false;
             }
-            document.getElementById('submit-btn').disabled = false;
         }
 
         // Инициализация TinyMCE для вопросов (только для чтения)

@@ -12,7 +12,7 @@ from app.routers.quizzes import router as quize_router
 from app.routers.group import router as group_router
 from app.routers.home import router as home_router
 from app.routers.hw import router as homework_router
-from app.routers.manual import router as train_router
+from app.routers.manuals import router as train_router
 
 
 @asynccontextmanager

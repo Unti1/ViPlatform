@@ -5,6 +5,7 @@ from fastapi import (
     Depends,
     Form,
     Request,
+    HTTPException,
 )
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -15,13 +16,12 @@ from sql_enums.base import GenderEnum
 
 login_router = APIRouter(
     prefix="/signin",
-    tags=["Sign In", 'Авторизация'],
+    tags=["Sign In", "Authorization"],
 )
 
 template = Jinja2Templates(directory="site_data/templates")
 
 
-    
 async def get_is_authenticated(request: Request):
     try:
         token = await security.get_access_token_from_request(request)
@@ -29,6 +29,15 @@ async def get_is_authenticated(request: Request):
         return True
     except:
         return False
+
+
+async def get_current_user(request: Request) -> User:
+    token = await security.get_access_token_from_request(request)
+    payload = security.verify_token(token, verify_csrf=False)
+    user = await User.get(id=int(payload.sub))
+    if not user:
+        raise HTTPException(status_code=401, detail="Пользователь не найден")
+    return user
 
 
 @login_router.get("/")
@@ -67,7 +76,7 @@ async def logout(request: Request):
 
 reg_router = APIRouter(
     prefix="/signup",
-    tags=["Sign Up", 'Регистрация'],
+    tags=["Sign Up", "Registration"],
 )
 
 template = Jinja2Templates(directory="site_data/templates")

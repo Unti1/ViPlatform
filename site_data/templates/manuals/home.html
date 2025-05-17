@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>Методические пособия</title>
+    <style>
+        .manuals-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .manuals-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .manuals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .manual-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+        .manual-card:hover {
+            transform: translateY(-5px);
+        }
+        .manual-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .manual-description {
+            color: #666;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .manual-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .create-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .create-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+{% endblock head %}
+
+{% block content %}
+    <div class="manuals-container" style = 'height: 90vh;'>
+        <div class="manuals-header">
+            <h1>Методические пособия</h1>
+            {% if is_auth and is_teacher %}
+                <a href="/manuals/create" class="create-btn">Создать пособие</a>
+            {% endif %}
+        </div>
+        
+        <div class="manuals-grid">
+            {% for manual in manuals %}
+                <div class="manual-card">
+                    <div class="manual-title">{{ manual.title }}</div>
+                    <div class="manual-description">{{ manual.description }}</div>
+                    <div class="manual-actions">
+                        <a href="/manuals/{{ manual.id }}" class="btn btn-primary">Просмотр</a>
+                        <a href="/manuals/{{ manual.id }}/download" class="btn btn-primary">Скачать</a>
+                        {% if is_auth and user.role == 'teacher' %}
+                            <button onclick="deleteManual({{ manual.id }})" class="btn btn-danger">Удалить</button>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        async function deleteManual(id) {
+            if (!confirm('Вы уверены, что хотите удалить это методическое пособие?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/manuals/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrf_access_token='))?.split('=')[1]
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert(`Ошибка при удалении: ${error.detail || 'Неизвестная ошибка'}`);
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при удалении');
+            }
+        }
+    </script>
+{% endblock content %} 

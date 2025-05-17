@@ -84,7 +84,7 @@ class Base(AsyncAttrs, DeclarativeBase):
     async def get(cls, session: AsyncSession, **creterias):
         query = select(cls).filter_by(**creterias)
         rows = await session.execute(query)
-        return rows.scalars().all()
+        return rows.scalar_one_or_none()
     
     @classmethod
     @connection

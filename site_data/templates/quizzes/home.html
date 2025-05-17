@@ -1,16 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="main_conteiner relative">
-    <h1>Доступные тесты</h1>
-    <a href="/quizzes/create" class="rounded-lg bg-blue-400 m-3 p-2 top-0 right-0 absolute hover:bg-blue-500">Создать новый тест</a>
-    <ul>
-        {% for quiz in quizzes %}
-        <li>
-            <h3><a href="/quizzes/{{quiz.id}}">{{ quiz.title }}</a></h3>
-            <p>{{ quiz.description }}</p>
-        </li>
-        {% endfor %}
-    </ul>
-</div>
+    <div class="main_conteiner relative" style = 'height: 90vh;'>
+
+        <h1>Доступные тесты</h1>
+        <a href="/quizzes/create" class="rounded-lg bg-blue-400 m-3 p-2 top-0 right-0 absolute hover:bg-blue-500">Создать новый тест</a>
+        <ul>
+            {% for quiz in quizzes %}
+            <li>
+                <h3><a href="/quizzes/{{quiz.id}}">{{ quiz.title }}</a></h3>
+                <p>{{ quiz.description }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock content %}

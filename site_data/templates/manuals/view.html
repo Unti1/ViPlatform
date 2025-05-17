@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>{{ manual.title }}</title>
+    <style>
+        .manual-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .manual-header {
+            margin-bottom: 30px;
+        }
+        .manual-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .manual-meta {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        .manual-description {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .manual-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #666;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            color: #333;
+        }
+    </style>
+{% endblock head %}
+
+{% block content %}
+    <div class="manual-container">
+        <a href="/manuals" class="back-link">← Назад к списку</a>
+        
+        <div class="manual-header">
+            <h1 class="manual-title">{{ manual.title }}</h1>
+            <div class="manual-meta">
+                <p>Группа: {{ manual.group.name }}</p>
+                <p>Создано: {{ manual.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+            </div>
+        </div>
+        
+        <div class="manual-description">
+            {{ manual.description | safe }}
+        </div>
+        
+        <div class="manual-actions">
+            <a href="/manuals/{{ manual.id }}/download" class="btn btn-primary">Скачать файл</a>
+            {% if is_auth and user.role == 'teacher' %}
+                <button onclick="deleteManual({{ manual.id }})" class="btn btn-danger">Удалить</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        async function deleteManual(id) {
+            if (!confirm('Вы уверены, что хотите удалить это методическое пособие?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/manuals/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrf_access_token='))?.split('=')[1]
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/manuals';
+                } else {
+                    const error = await response.json();
+                    alert(`Ошибка при удалении: ${error.detail || 'Неизвестная ошибка'}`);
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при удалении');
+            }
+        }
+    </script>
+{% endblock content %} 

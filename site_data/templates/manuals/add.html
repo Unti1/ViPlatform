@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <title>Создание методического пособия</title>
+    <style>
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-label {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .file-label:hover {
+            background-color: #e9ecef;
+        }
+        .file-name {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+        .submit-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: #218838;
+        }
+        .submit-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+{% endblock head %}
+
+{% block content %}
+    <div class="form-container">
+        <h1>Создание методического пособия</h1>
+        
+        <form id="manualForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="title">Название</label>
+                <input type="text" id="title" name="title" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description" class="form-control" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="group_id">Группа</label>
+                <select id="group_id" name="group_id" class="form-control" required>
+                    <option value="">Выберите группу</option>
+                    {% for group in groups%}
+                        <option value="{{group.id}}">{{group.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="file" class="file-label">Выберите файл</label>
+                <input type="file" id="file" name="file" class="file-input" required>
+                <div class="file-name"></div>
+            </div>
+            
+            <button type="submit" class="submit-btn">Создать пособие</button>
+        </form>
+    </div>
+
+    <script>
+        // Обработка выбора файла
+        document.getElementById('file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            document.querySelector('.file-name').textContent = fileName || '';
+        });
+
+        // Обработка отправки формы
+        document.getElementById('manualForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('.submit-btn');
+            submitBtn.disabled = true;
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/manuals/create', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrf_access_token='))?.split('=')[1]
+                    },
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    alert('Методическое пособие успешно создано!');
+                    window.location.href = '/manuals';
+                } else {
+                    const error = await response.json();
+                    alert(`Ошибка при создании: ${error.detail || 'Неизвестная ошибка'}`);
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при создании пособия');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Загрузка списка групп
+        async function loadGroups() {
+            try {
+                const response = await fetch('/groups');
+                if (response.ok) {
+                    const groups = await response.json();
+                    const select = document.getElementById('group_id');
+                    
+                    groups.forEach(group => {
+                        const option = document.createElement('option');
+                        option.value = group.id;
+                        option.textContent = group.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке групп:', error);
+            }
+        }
+
+        // Загружаем группы при загрузке страницы
+        loadGroups();
+    </script>
+{% endblock content %} 
